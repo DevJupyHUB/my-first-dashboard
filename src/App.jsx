@@ -92,7 +92,7 @@ function App() {
           {/* Card 07 */}
           <div className="bg-neutral-900 rounded-2xl p-4 h-full flex flex-col">
             <h2 className="font-bold text-lg mb-2 text-gray-400">
-              Fossil Fuel Energy Leaders{" "}
+              Fossil Fuel % of Primary Energy{" "}
               <span className="text-sm text-gray-400">(2024)</span>
             </h2>
 

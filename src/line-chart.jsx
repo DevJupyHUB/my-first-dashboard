@@ -119,6 +119,21 @@ export function LineChart({
           onMouseLeave={() => setCursor(null)}
         />
 
+        {/* Axes */}
+        <AxisLeft
+          yScale={yScale}
+          pixelsPerTick={40}
+          boundsWidth={boundsWidth}
+        />
+
+        <g transform={`translate(0, ${boundsHeight})`}>
+          <AxisBottom
+            xScale={xScale}
+            pixelsPerTick={40}
+            boundsHeight={boundsHeight}
+          />
+        </g>
+
         {/* Lines */}
         {keys.map((key) => (
           <path
@@ -178,21 +193,6 @@ export function LineChart({
             </g>
           </>
         )}
-
-        {/* Axes */}
-        <AxisLeft
-          yScale={yScale}
-          pixelsPerTick={40}
-          boundsWidth={boundsWidth}
-        />
-
-        <g transform={`translate(0, ${boundsHeight})`}>
-          <AxisBottom
-            xScale={xScale}
-            pixelsPerTick={40}
-            boundsHeight={boundsHeight}
-          />
-        </g>
       </g>
     </svg>
   );

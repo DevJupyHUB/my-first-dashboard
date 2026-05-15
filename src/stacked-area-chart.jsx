@@ -96,7 +96,7 @@ export function StackedAreaChart({ rawData, width, height, keys, colors }) {
   };
 
   // Tooltip positioning
-  const TOOLTIP_WIDTH = 110;
+  const TOOLTIP_WIDTH = 120;
   const TOOLTIP_PADDING = 12;
 
   const tooltipOnLeft = cursor?.x > boundsWidth * 0.7;
@@ -195,7 +195,7 @@ export function StackedAreaChart({ rawData, width, height, keys, colors }) {
                 height={tooltipHeight}
                 rx={6}
                 fill="white"
-                stroke="#ddd"
+                stroke="#CCC"
               />
 
               {/* Year */}
@@ -210,7 +210,7 @@ export function StackedAreaChart({ rawData, width, height, keys, colors }) {
                   x={10}
                   y={42 + index * 18}
                   fontSize={12}
-                  fontWeight={500}
+                  fontWeight={900}
                   fill={item.color}
                 >
                   {item.key.charAt(0).toUpperCase() + item.key.slice(1)}:{" "}

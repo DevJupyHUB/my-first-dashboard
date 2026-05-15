@@ -6,23 +6,25 @@ import { useDimensions } from "./use-dimensions";
 function buildTableData(rawData, keys) {
   return (rawData || [])
     .filter((d) => d.country !== "World")
-    .filter((d) => +d.year === 2024) // only 2024 data
+    .filter((d) => +d.year === 2024)
     .map((d) => {
       const obj = {
         country: d.country,
         primaryEnergy: Number(d.primary_energy) || 0,
       };
+
       keys.forEach((key) => {
         obj[key] = Number(d[key]) || 0;
       });
+
       return obj;
     })
     .sort((a, b) => {
       const totalA = d3.sum(keys, (key) => a[key]);
       const totalB = d3.sum(keys, (key) => b[key]);
+
       return totalB - totalA;
-    })
-    .slice(0, 5); // top 3
+    });
 }
 
 // Progress bar with percentage
@@ -77,16 +79,22 @@ function LinearProgress({ value, primaryEnergy, color = "#888", height = 14 }) {
   );
 }
 
-// Props
+// Table
 function EnergyTable({ rawData, keys, colors, width, height }) {
   const data = buildTableData(rawData, keys);
+
   if (!data.length) return null;
 
   const formatLabel = (str = "") => str.charAt(0).toUpperCase() + str.slice(1);
 
-  // Render
+  const countryAbbreviations = {
+    "United Kingdom": "UK",
+    "United Arab Emirates": "UAE",
+  };
+
   return (
     <div
+      className="scrollbar-dark"
       style={{
         width,
         height,
@@ -97,15 +105,55 @@ function EnergyTable({ rawData, keys, colors, width, height }) {
         style={{
           width: "100%",
           borderCollapse: "separate",
-          borderSpacing: "0 12px", // vertical spacing between rows
+          borderSpacing: "0 10px",
         }}
       >
         <thead>
-          <tr style={{ textAlign: "left", color: "#AAAAAA", fontSize: 12 }}>
-            <th style={{ fontWeight: 600, paddingRight: 12 }}>Country</th>
+          <tr
+            style={{
+              textAlign: "left",
+              color: "#AAAAAA",
+              fontSize: 12,
+            }}
+          >
+            {/* Country header */}
+            <th
+              style={{
+                position: "sticky",
+                top: 0,
+                zIndex: 10,
+                background: "#171717",
 
+                fontWeight: 600,
+                paddingRight: 12,
+                paddingTop: 12,
+                paddingBottom: 12,
+
+                whiteSpace: "nowrap",
+              }}
+            >
+              Country
+            </th>
+
+            {/* Energy headers */}
             {keys.map((key) => (
-              <th key={key} style={{ fontWeight: 600, textAlign: "center" }}>
+              <th
+                key={key}
+                style={{
+                  position: "sticky",
+                  top: 0,
+                  zIndex: 10,
+                  background: "#171717",
+
+                  fontWeight: 600,
+                  textAlign: "center",
+
+                  paddingTop: 12,
+                  paddingBottom: 12,
+
+                  whiteSpace: "nowrap",
+                }}
+              >
                 {formatLabel(key)}
               </th>
             ))}
@@ -115,9 +163,11 @@ function EnergyTable({ rawData, keys, colors, width, height }) {
         <tbody>
           {data.map((row, rowIndex) => (
             <tr
-              className="hover:bg-neutral-600 transition-colors duration-150"
               key={rowIndex}
-              style={{ verticalAlign: "middle" }}
+              className="hover:bg-neutral-600 transition-colors duration-150"
+              style={{
+                verticalAlign: "middle",
+              }}
             >
               {/* Country */}
               <td
@@ -129,12 +179,17 @@ function EnergyTable({ rawData, keys, colors, width, height }) {
                   paddingRight: 12,
                 }}
               >
-                {row.country}
+                {countryAbbreviations[row.country] || row.country}
               </td>
 
-              {/* Progress bar */}
+              {/* Progress bars */}
               {keys.map((key) => (
-                <td key={key} style={{ textAlign: "center" }}>
+                <td
+                  key={key}
+                  style={{
+                    textAlign: "center",
+                  }}
+                >
                   <LinearProgress
                     value={row[key]}
                     primaryEnergy={row.primaryEnergy}
@@ -153,10 +208,17 @@ function EnergyTable({ rawData, keys, colors, width, height }) {
 // Responsive wrapper
 export default function REnergyTable(props) {
   const ref = useRef(null);
+
   const { width, height } = useDimensions(ref);
 
   return (
-    <div ref={ref} style={{ width: "100%", height: "100%" }}>
+    <div
+      ref={ref}
+      style={{
+        width: "100%",
+        height: "100%",
+      }}
+    >
       {width > 0 && height > 0 && (
         <EnergyTable {...props} width={width} height={height} />
       )}
