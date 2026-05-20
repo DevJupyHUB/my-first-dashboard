@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
 import { useDimensions } from "./use-dimensions";
 
@@ -18,12 +18,6 @@ function buildTableData(rawData, keys) {
       });
 
       return obj;
-    })
-    .sort((a, b) => {
-      const totalA = d3.sum(keys, (key) => a[key]);
-      const totalB = d3.sum(keys, (key) => b[key]);
-
-      return totalB - totalA;
     });
 }
 
@@ -81,7 +75,61 @@ function LinearProgress({ value, primaryEnergy, color = "#888", height = 14 }) {
 
 // Table
 function EnergyTable({ rawData, keys, colors, width, height }) {
-  const data = buildTableData(rawData, keys);
+  // Sort state
+  const [sortConfig, setSortConfig] = useState({
+    key: "total",
+    direction: "desc",
+  });
+
+  // Handle sorting
+  const handleSort = (key) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === "desc" ? "asc" : "desc",
+    }));
+  };
+
+  // Sort arrow helper
+  const getSortArrow = (key) => {
+    if (sortConfig.key !== key) return " ↕";
+    return sortConfig.direction === "asc" ? " ↑" : " ↓";
+  };
+
+  // Sorted data
+  const data = useMemo(() => {
+    const baseData = buildTableData(rawData, keys);
+
+    return [...baseData].sort((a, b) => {
+      let aValue;
+      let bValue;
+
+      // Country sorting
+      if (sortConfig.key === "country") {
+        aValue = a.country;
+        bValue = b.country;
+
+        return sortConfig.direction === "asc"
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+
+      // Total sorting
+      if (sortConfig.key === "total") {
+        aValue = d3.sum(keys, (key) => (a[key] / a.primaryEnergy) * 100 || 0);
+
+        bValue = d3.sum(keys, (key) => (b[key] / b.primaryEnergy) * 100 || 0);
+      } else {
+        // Sort by percentage
+        aValue =
+          a.primaryEnergy > 0 ? (a[sortConfig.key] / a.primaryEnergy) * 100 : 0;
+
+        bValue =
+          b.primaryEnergy > 0 ? (b[sortConfig.key] / b.primaryEnergy) * 100 : 0;
+      }
+
+      return sortConfig.direction === "asc" ? aValue - bValue : bValue - aValue;
+    });
+  }, [rawData, keys, sortConfig]);
 
   if (!data.length) return null;
 
@@ -118,6 +166,7 @@ function EnergyTable({ rawData, keys, colors, width, height }) {
           >
             {/* Country header */}
             <th
+              onClick={() => handleSort("country")}
               style={{
                 position: "sticky",
                 top: 0,
@@ -130,15 +179,19 @@ function EnergyTable({ rawData, keys, colors, width, height }) {
                 paddingBottom: 12,
 
                 whiteSpace: "nowrap",
+                cursor: "pointer",
+                userSelect: "none",
               }}
             >
               Country
+              {getSortArrow("country")}
             </th>
 
             {/* Energy headers */}
             {keys.map((key) => (
               <th
                 key={key}
+                onClick={() => handleSort(key)}
                 style={{
                   position: "sticky",
                   top: 0,
@@ -152,9 +205,12 @@ function EnergyTable({ rawData, keys, colors, width, height }) {
                   paddingBottom: 12,
 
                   whiteSpace: "nowrap",
+                  cursor: "pointer",
+                  userSelect: "none",
                 }}
               >
                 {formatLabel(key)}
+                {getSortArrow(key)}
               </th>
             ))}
           </tr>
